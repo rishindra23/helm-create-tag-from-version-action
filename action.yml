@@ -1,0 +1,90 @@
+name: Helm Create Tag from Version Action
+
+description: |-
+  Automates the process of pushing merge commits into a "release" branch from
+  either a source branch (ie `main`) or from Git Tags/Releases.
+
+author: Matt Wise <matt@nextdoor.com>
+
+branding:
+  color: green
+  icon: arrow-up-right
+
+inputs:
+  dry:
+    description: Whether or not this action will run in a dry run or not.
+    default: false
+    required: false
+
+  verbose:
+    description: >-
+      Should the script output all of the commands (set -x) while its running or not?
+    default: false
+    required: false
+
+  chart_dir:
+    description: >-
+      The path to where the chart lives (specifically the directory
+      that holds the Chart.yaml file).
+    default: chart
+    required: true
+
+  # Settings that control the identity of the author attributed to the Git tag,
+  # the tag behavior, and the tag message.
+  tag_user_name:
+    description: The username that will the Git tag will be made on behalf of.
+    required: true
+    default: ${{ github.actor }}
+
+  tag_user_email:
+    description: The email that will the Git tag will be made on behalf of.
+    required: true
+    default: ${{ github.actor }}@users.noreply.github.com
+
+  tag_message:
+    description: >-
+      A string applied to the Tag to help provide a record of who made the
+      action, when, and why.
+    default: >-
+      Automated Helm Release by ${{ github.actor }} from Commit SHA
+      ${{ github.sha }} (Branch: ${{ github.head_ref }})
+
+  force:
+    description: >-
+      If true, then the git tag event (and the git push) will be forced. This
+      will overwrite existing tags.
+    default: true
+    required: true
+
+  release_tag:
+    description: >-
+      If supplied, this tag will be used as an "alias tag" that is continually
+      updated and moved to point to the most recent Helm Chart release tag.
+      Eg. If you have app-1.2.3 and you release app-1.2.4, the "alias tag"
+      will be moved from app-1.2.3 to app 1.2.4. This is useful for
+      maintaining a "stable" or "production" pointer tag for CI tooling for
+      developers.
+
+      Note: Make absolutely sure that if you have multiple charts in your
+      repository that you customize this to include the chart name -
+      otherwise this value will be moved around between charts.
+    required: false
+
+  # Settings that control information around the optional Github Release that
+  # is created with the tag.
+  create_release:
+    description: Whether or not to also create a Github Release for this tag?
+    default: true
+    required: true
+
+  release_message:
+    description: >-
+      The release message that is shown in the Github Releases UI for this
+      release.
+    default: >-
+      Automated Helm Release by ${{ github.actor }} from Commit SHA
+      ${{ github.sha }} (Branch: ${{ github.head_ref }})
+
+runs:
+  using: docker
+  image: Dockerfile
